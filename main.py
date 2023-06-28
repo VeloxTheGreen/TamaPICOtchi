@@ -81,11 +81,11 @@ class Tamagotchi:
     
     def check_if_dead(self, switch):
         if switch == 3 or meatmon.get_meat_state() == 1:
-            if chargebar2.change_bar() == True: # tamagotchi is dead
+            if chargebar2.change_bar(chargebar2.barlvl) == True: # tamagotchi is dead
                 lcd.move_to(0, 0)
                 lcd.putstr("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
                 return True
-        food.change_icon()
+        food.change_icon(chargebar2.barlvl)
         return False
 #class meat################################################
 class Meat:
@@ -98,27 +98,26 @@ class Meat:
     def set_meat_state(self, new_state):
         self.meat_state = new_state
     
-    def change_state(self, switch):
-        global hunger
+    def change_state(self, switch, chargebar):
         global manure_switch
         if self.meat_state == 0:
             if switch == 0:
                 lcd.custom_char(0, meat_bitmap2)
-                if hunger == 3:
+                if chargebar.barlvl == 3:
                     lcd.custom_char(3, charge_bitmap2)
-                    hunger = 2
+                    chargebar.barlvl = 2
                 switch = 1
             elif switch == 1:
                 lcd.custom_char(0, meat_bitmap3)
-                if hunger == 2:
+                if chargebar.barlvl == 2:
                     lcd.custom_char(3, charge_bitmap3)
-                    hunger = 1
+                    chargebar.barlvl = 1
                 switch = 2
             elif switch == 2:
                 lcd.custom_char(0, meat_bitmap4)
-                if hunger == 1:
+                if chargebar.barlvl == 1:
                     lcd.custom_char(3, charge_bitmap4)
-                    hunger = 0
+                    chargebar.barlvl = 0
                 count = 0
                 sleep(0.3)
                 lcd.move_to(manure_switch, 1)
@@ -128,26 +127,26 @@ class Meat:
                 else:
                     manure_switch = 0
                 switch = 3
-            food.change_icon()
+            food.change_icon(chargebar.barlvl)
         return switch
 #class chargebar###########################################
 class Chargebar:
-    def __init__(self, bar_number, char):
+    def __init__(self, bar_number, char, barlvl):
         self.bar_number = bar_number
         self.chargebar_chr = char
+        self.barlvl = barlvl
         
-    def change_bar(self):
-        global hunger
-        if hunger == 0:
+    def change_bar(self, barlvl):
+        if barlvl == 0:
             lcd.custom_char((self.bar_number+1), charge_bitmap3)
-            hunger = 1
-        elif hunger == 1:
+            self.barlvl = 1
+        elif barlvl == 1:
             lcd.custom_char((self.bar_number+1), charge_bitmap2)
-            hunger = 2
-        elif hunger == 2:
+            self.barlvl = 2
+        elif barlvl == 2:
             lcd.custom_char((self.bar_number+1), charge_bitmap1)
-            hunger = 3
-        elif hunger == 3:
+            self.barlvl = 3
+        elif barlvl == 3:
             return True
         return False
 #class Food Icon###########################################
@@ -162,30 +161,29 @@ class Food_Icon:
         else:
             lcd.custom_char(5, banana1)
     
-    def change_icon(self): #changes food level
-        global hunger
-        if hunger == 0:
+    def change_icon(self, barlvl): #changes food level
+        if barlvl == 0:
             if self.food_generator == 1:
                 lcd.custom_char(5, pizza1)
             elif self.food_generator == 2:
                 lcd.custom_char(5, toast1)
             else:
                 lcd.custom_char(5, banana1)
-        elif hunger == 1: # barely gone
+        elif barlvl == 1: # barely gone
             if self.food_generator == 1:
                 lcd.custom_char(5, pizza2)
             elif self.food_generator == 2:
                 lcd.custom_char(5, toast2)
             else:
                 lcd.custom_char(5, banana2)
-        elif hunger == 2: #almost gone
+        elif barlvl == 2: #almost gone
             if self.food_generator == 1:
                 lcd.custom_char(5, pizza3)
             elif self.food_generator == 2:
                 lcd.custom_char(5, toast3)
             else:
                 lcd.custom_char(5, banana3)
-        elif hunger == 3: # no food
+        elif barlvl == 3: # no food
             if self.food_generator == 1:
                 lcd.custom_char(5, pizza4)
             elif self.food_generator == 2:
@@ -198,8 +196,8 @@ manure = chr(1)
 #setup charges#############################################        
 lcd.custom_char(2, charge_bitmap4)
 lcd.custom_char(3, charge_bitmap4)
-chargebar1 = Chargebar(1, chr(2))####
-chargebar2 = Chargebar(2, chr(3))####
+chargebar1 = Chargebar(1, chr(2), 0)#######################
+chargebar2 = Chargebar(2, chr(3), 0)#######################
 lcd.move_to(14,0)
 lcd.putstr(chargebar1.chargebar_chr)
 sleep(0.1)
@@ -243,8 +241,9 @@ while True:
     #mental state count######################    
     count = count + 1
     if (count%5) == 0:
-        switch = meatmon.change_state(switch)
-    if count >= 80:
+        switch = meatmon.change_state(switch, chargebar2)
+        
+    if count >= 8:
         count = 0
         if babymon.check_if_dead(switch) == True:    
             break;

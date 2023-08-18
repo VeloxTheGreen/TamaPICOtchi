@@ -84,7 +84,7 @@ charge_bitmap4=([
   0x1F,
   0x1F])
 ################
-happiness=([
+happy=([
     0x04,
   0x02,
   0x19,
